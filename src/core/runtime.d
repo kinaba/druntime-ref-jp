@@ -293,8 +293,8 @@ extern (C) bool runModuleUnitTests()
             void*[MAXFRAMES]  callstack;
             int               numframes;
 
-            numframes = backtrace( callstack, MAXFRAMES );
-            backtrace_symbols_fd( callstack, numframes, 2 );
+            numframes = backtrace( callstack.ptr, MAXFRAMES );
+            backtrace_symbols_fd( callstack.ptr, numframes, 2 );
         }
 
         sigaction_t action = void;
@@ -412,7 +412,7 @@ Throwable.TraceInfo defaultTraceHandler( void* ptr = null )
                         }
                     }
                 }
-                framelist = backtrace_symbols( callstack, numframes );
+                framelist = backtrace_symbols( callstack.ptr, numframes );
             }
 
             ~this()
@@ -420,15 +420,15 @@ Throwable.TraceInfo defaultTraceHandler( void* ptr = null )
                 free( framelist );
             }
 
-            override int opApply( scope int delegate(ref char[]) dg )
+            override int opApply( scope int delegate(ref const(char[])) dg ) const
             {
-                return opApply( (ref size_t, ref char[] buf)
+                return opApply( (ref size_t, ref const(char[]) buf)
                                 {
                                     return dg( buf );
                                 } );
             }
 
-            override int opApply( scope int delegate(ref size_t, ref char[]) dg )
+            override int opApply( scope int delegate(ref size_t, ref const(char[])) dg ) const
             {
                 version( Posix )
                 {
@@ -451,9 +451,10 @@ Throwable.TraceInfo defaultTraceHandler( void* ptr = null )
 
                 for( int i = FIRSTFRAME; i < numframes; ++i )
                 {
+                    char[4096] fixbuf;
                     auto buf = framelist[i][0 .. strlen(framelist[i])];
                     auto pos = cast(size_t)(i - FIRSTFRAME);
-                    buf = fixline( buf );
+                    buf = fixline( buf, fixbuf );
                     ret = dg( pos, buf );
                     if( ret )
                         break;
@@ -461,7 +462,7 @@ Throwable.TraceInfo defaultTraceHandler( void* ptr = null )
                 return ret;
             }
 
-            override string toString()
+            override string toString() const
             {
                 string buf;
                 foreach( i, line; this )
@@ -474,8 +475,7 @@ Throwable.TraceInfo defaultTraceHandler( void* ptr = null )
             char**  framelist;
 
         private:
-            char[4096] fixbuf;
-            char[] fixline( char[] buf )
+            const(char)[] fixline( const(char)[] buf, ref char[4096] fixbuf ) const
             {
                 version( OSX )
                 {

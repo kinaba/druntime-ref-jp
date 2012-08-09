@@ -18,8 +18,10 @@ private import rt.util.hash;
 
 // double[]
 
-class TypeInfo_Ad : TypeInfo
+class TypeInfo_Ad : TypeInfo_Array
 {
+    override equals_t opEquals(Object o) { return TypeInfo.opEquals(o); }
+
     @trusted:
     const:
     pure:
@@ -28,7 +30,8 @@ class TypeInfo_Ad : TypeInfo
     override string toString() const pure nothrow @safe { return "double[]"; }
 
     override hash_t getHash(in void* p)
-    {   double[] s = *cast(double[]*)p;
+    {
+        double[] s = *cast(double[]*)p;
         return hashOf(s.ptr, s.length * double.sizeof);
     }
 
@@ -69,31 +72,9 @@ class TypeInfo_Ad : TypeInfo
         return 0;
     }
 
-    @property override size_t tsize() nothrow pure
-    {
-        return (double[]).sizeof;
-    }
-
-    @property override uint flags() nothrow pure
-    {
-        return 1;
-    }
-
-    @property override TypeInfo next() nothrow pure
+    override @property const(TypeInfo) next() nothrow pure
     {
         return typeid(double);
-    }
-
-    @property override size_t talign() nothrow pure
-    {
-        return (double[]).alignof;
-    }
-
-    version (X86_64) override int argTypes(out TypeInfo arg1, out TypeInfo arg2)
-    {
-        //arg1 = typeid(size_t);
-        //arg2 = typeid(void*);
-        return 0;
     }
 }
 
@@ -108,7 +89,7 @@ class TypeInfo_Ap : TypeInfo_Ad
 
     override string toString() const pure nothrow @safe { return "idouble[]"; }
 
-    @property override TypeInfo next() nothrow pure
+    override @property const(TypeInfo) next() nothrow pure
     {
         return typeid(idouble);
     }

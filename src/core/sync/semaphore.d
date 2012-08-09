@@ -348,7 +348,7 @@ class Semaphore
         }
         else version( OSX )
         {
-            return wait( 0 );
+            return wait( dur!"hnsecs"(0) );
         }
         else version( Posix )
         {
@@ -436,7 +436,7 @@ version( unittest )
                 semaphore.notify();
                 Thread.yield();
             }
-            Thread.sleep( 10_000_000 ); // 1s
+            Thread.sleep( dur!"seconds"(1) );
             synchronized( synProduced )
             {
                 allProduced = true;
@@ -448,7 +448,10 @@ version( unittest )
                 Thread.yield();
             }
 
-            for( int i = numConsumers * 100_000; i > 0; --i )
+            version (FreeBSD) enum factor = 500_000;
+            else enum factor = 10_000;
+
+            for( int i = numConsumers * factor; i > 0; --i )
             {
                 synchronized( synComplete )
                 {

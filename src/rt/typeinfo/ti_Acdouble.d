@@ -18,8 +18,10 @@ private import rt.util.hash;
 
 // cdouble[]
 
-class TypeInfo_Ar : TypeInfo
+class TypeInfo_Ar : TypeInfo_Array
 {
+    override equals_t opEquals(Object o) { return TypeInfo.opEquals(o); }
+
     @trusted:
     const:
     pure:
@@ -28,7 +30,8 @@ class TypeInfo_Ar : TypeInfo
     override string toString() const pure nothrow @safe { return "cdouble[]"; }
 
     override hash_t getHash(in void* p)
-    {   cdouble[] s = *cast(cdouble[]*)p;
+    {
+        cdouble[] s = *cast(cdouble[]*)p;
         return hashOf(s.ptr, s.length * cdouble.sizeof);
     }
 
@@ -69,30 +72,8 @@ class TypeInfo_Ar : TypeInfo
         return 0;
     }
 
-    @property override size_t tsize() nothrow pure
-    {
-        return (cdouble[]).sizeof;
-    }
-
-    @property override uint flags() nothrow pure
-    {
-        return 1;
-    }
-
-    @property override TypeInfo next() nothrow pure
+    override @property const(TypeInfo) next() nothrow pure
     {
         return typeid(cdouble);
-    }
-
-    @property override size_t talign() nothrow pure
-    {
-        return (cdouble[]).alignof;
-    }
-
-    version (X86_64) override int argTypes(out TypeInfo arg1, out TypeInfo arg2)
-    {
-        //arg1 = typeid(size_t);
-        //arg2 = typeid(void*);
-        return 0;
     }
 }
